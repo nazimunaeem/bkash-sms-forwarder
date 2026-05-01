@@ -1,0 +1,151 @@
+name: Build bKash SMS Forwarder APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:     [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:          # allow manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Java 17 ───────────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # ── 3. Android SDK ───────────────────────────────────────────────────────
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ── 4. Cache Gradle ──────────────────────────────────────────────────────
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # ── 5. Grant execute permission ──────────────────────────────────────────
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # ── 6. Build DEBUG APK ───────────────────────────────────────────────────
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # ── 7. Build RELEASE APK (unsigned) ─────────────────────────────────────
+      - name: Build Release APK (unsigned)
+        run: ./gradlew assembleRelease --no-daemon
+
+      # ── 8. Sign Release APK ──────────────────────────────────────────────────
+      #  Set these secrets in: GitHub → Settings → Secrets and variables → Actions
+      #    KEYSTORE_BASE64  : base64 of your .jks file  (base64 -w 0 your.jks)
+      #    KEY_ALIAS        : your key alias
+      #    KEY_PASSWORD     : key password
+      #    STORE_PASSWORD   : keystore password
+      - name: Sign Release APK
+        if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias:            ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.STORE_PASSWORD }}
+          keyPassword:      ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      # ── 9. Rename APKs for clarity ───────────────────────────────────────────
+      - name: Rename APKs
+        run: |
+          VERSION="${{ github.ref_name }}"
+          if [[ "$VERSION" != v* ]]; then VERSION="dev-$(echo ${{ github.sha }} | cut -c1-7)"; fi
+
+          DEBUG_SRC="app/build/outputs/apk/debug/app-debug.apk"
+          DEBUG_DST="BkashSMSForwarder-${VERSION}-debug.apk"
+          cp "$DEBUG_SRC" "$DEBUG_DST" 2>/dev/null || true
+
+          RELEASE_SRC="app/build/outputs/apk/release/app-release-unsigned.apk"
+          SIGNED_SRC="${{ steps.sign_app.outputs.signedReleaseFile }}"
+          if [ -f "$SIGNED_SRC" ]; then
+            cp "$SIGNED_SRC" "BkashSMSForwarder-${VERSION}-release.apk"
+          elif [ -f "$RELEASE_SRC" ]; then
+            cp "$RELEASE_SRC" "BkashSMSForwarder-${VERSION}-release-unsigned.apk"
+          fi
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      # ── 10. Upload debug APK as artifact ─────────────────────────────────────
+      - name: Upload Debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BkashSMSForwarder-debug-${{ env.VERSION }}
+          path: BkashSMSForwarder-*-debug.apk
+          retention-days: 30
+
+      # ── 11. Upload release APK as artifact ───────────────────────────────────
+      - name: Upload Release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BkashSMSForwarder-release-${{ env.VERSION }}
+          path: BkashSMSForwarder-*-release*.apk
+          retention-days: 90
+
+      # ── 12. Create GitHub Release on tag push ─────────────────────────────────
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "bKash SMS Forwarder ${{ github.ref_name }}"
+          body: |
+            ## bKash SMS Forwarder ${{ github.ref_name }}
+
+            ### Install
+            1. Download **BkashSMSForwarder-${{ github.ref_name }}-release.apk**
+            2. Enable "Install unknown apps" on your Android device
+            3. Open the APK to install
+
+            ### What's in this release
+            - Monitors bKash SMS on selected SIM (Both / SIM 1 / SIM 2)
+            - Forwards JSON to your BankPrep server
+            - Auto-starts on boot
+
+            ### Server setup
+            See `server/receive_sms.php` and `sql/schema.sql` in the repository.
+          files: |
+            BkashSMSForwarder-*-release*.apk
+            BkashSMSForwarder-*-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 13. Run lint (non-blocking, report as annotation) ─────────────────────
+      - name: Run Lint
+        if: always()
+        run: ./gradlew lint --no-daemon || true
+
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-*.html
+          retention-days: 7

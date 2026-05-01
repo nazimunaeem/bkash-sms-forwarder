@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Server Settings -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌐 Server Settings"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Server URL *"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <EditText
+                    android:id="@+id/et_server_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="https://your-server.com/api/sms"
+                    android:inputType="textUri"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Secret Key (optional)"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <EditText
+                    android:id="@+id/et_secret_key"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Sent as X-Secret-Key header"
+                    android:inputType="textPassword"
+                    android:layout_marginBottom="12dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SMS Sender Filter"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <EditText
+                    android:id="@+id/et_sender_filter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="bKash"
+                    android:text="bKash"
+                    android:inputType="text"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Verify SSL Certificate"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"/>
+                    <Switch
+                        android:id="@+id/switch_verify_ssl"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- SIM Selection -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📱 SIM Card Selection"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Which SIM should be monitored for bKash SMS?"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- Detected SIM names -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_sim1_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SIM 1: Detecting..."
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:background="#F0F0F0"
+                        android:padding="8dp"/>
+
+                    <View android:layout_width="8dp" android:layout_height="1dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_sim2_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SIM 2: Detecting..."
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:background="#F0F0F0"
+                        android:padding="8dp"/>
+                </LinearLayout>
+
+                <RadioGroup
+                    android:id="@+id/rg_sim_pref"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/rb_both"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="Both SIMs (monitor all)"
+                        android:checked="true"
+                        android:textSize="15sp"
+                        android:buttonTint="@color/primary"/>
+
+                    <RadioButton
+                        android:id="@+id/rb_sim1"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="SIM 1 only"
+                        android:textSize="15sp"
+                        android:buttonTint="@color/primary"/>
+
+                    <RadioButton
+                        android:id="@+id/rb_sim2"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="SIM 2 only"
+                        android:textSize="15sp"
+                        android:buttonTint="@color/primary"/>
+                </RadioGroup>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Buttons -->
+        <Button
+            android:id="@+id/btn_test_connection"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="8dp"
+            android:text="Test Connection"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="@color/primary"/>
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Save Settings"
+            android:backgroundTint="@color/primary"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"/>
+
+        <!-- Payload info box -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#E3F2FD">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📤 POST Payload (JSON)"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0"
+                    android:textSize="13sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text='{\n  "message": "You have received Tk 1.00...",\n  "sim": "SIM 1 (Grameenphone)",\n  "timestamp": 1713000000000,\n  "source": "bkash_sms_forwarder"\n}'
+                    android:textColor="#1565C0"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>
